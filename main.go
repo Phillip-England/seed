@@ -22,6 +22,13 @@ func main() {
 	app.At("plant", func(app *mood.Mood) error {
 
 		out := app.GetArgOr(1, ".")
+		if out != "." {
+			if len(out) >= 2 {
+				if string(out[0:2]) != "./" {
+					out = "./" + out
+				}
+			}
+		}
 		menuPosition := 0
 		menuLimit := 2
 		clear()
@@ -76,10 +83,16 @@ func main() {
 					}
 					return nil
 				case "cli":
-					fmt.Println("generating a golang cli project..")
+					err := GenerateGoCli(out)
+					if err != nil {
+						return err
+					}
 					return nil
 				case "library":
-					fmt.Println("generating a golang library project..")
+					err := GenerateGoLibrary(out)
+					if err != nil {
+						return err
+					}
 					return nil
 				}
 				return nil
@@ -92,6 +105,117 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
+}
+
+func GenerateGoLibrary(out string) error {
+	if out != "." {
+		err := makeDir(out)
+		if err != nil {
+			return fmt.Errorf(`cannot overwrite dir [%s] because it already exists`, out)
+		}
+	}
+	skeleton := NewLibrarySkeleton(out)
+	err := makeFile(skeleton.LibGoPath)
+	if err != nil {
+		return err
+	}
+	err = makeFile(skeleton.TestGoPath)
+	if err != nil {
+		return err
+	}
+	err = writeFile(skeleton.LibGoPath, `package lib
+
+func Add(a, b int) int {
+	return a + b
+}
+`)
+	if err != nil {
+		return err
+	}
+	err = writeFile(skeleton.TestGoPath, `package lib
+
+import "testing"
+
+func TestAdd(t *testing.T) {
+	result := Add(2, 3)
+	expected := 5
+
+	if result != expected {
+		t.Errorf("Expected %d, but got %d", expected, result)
+	}
+}
+`)
+	if err != nil {
+		return err
+	}
+	clear()
+	if out == "." {
+		fmt.Println("to initialize the project, run:\n")
+		fmt.Println("1. go mod init github.com/github-name/repo-name\n")
+		fmt.Println("thank you for using seed 🌱")
+		return nil
+	}
+	fmt.Println("to initialize the project, run:\n")
+	fmt.Println("1. cd " + strings.Replace(out, "./", "", 1))
+	fmt.Println("2. go mod init github.com/github-name/repo-name\n")
+	fmt.Println("thank you for using seed 🌱")
+	return nil
+}
+
+func GenerateGoCli(out string) error {
+	if out != "." {
+		err := makeDir(out)
+		if err != nil {
+			return fmt.Errorf(`cannot overwrite dir [%s] because it already exists`, out)
+		}
+	}
+	skeleton := NewCliSkeleton(out)
+	err := makeFile(skeleton.MainGoPath)
+	if err != nil {
+		return err
+	}
+	err = writeFile(skeleton.MainGoPath, `package main
+
+import (
+	"github.com/Phillip-England/mood"
+	"fmt"
+)
+
+func main() {
+
+	app := mood.New()
+
+	app.At("build", func(app *mood.Mood) error {
+		if app.HasFlag("-f") {
+      fmt.Println("do something..")
+    }
+    fmt.Println("building...")
+		return nil
+	})
+
+	err := app.Run()
+	if err != nil {
+		panic(err)
+	}
+
+}`)
+	if err != nil {
+		return err
+	}
+	clear()
+	if out == "." {
+		fmt.Println("to install required packages run:\n")
+		fmt.Println("1. go mod init github.com/github-name/repo-name")
+		fmt.Println("2. go mod tidy\n")
+		fmt.Println("thank you for using seed 🌱")
+		return nil
+	}
+	fmt.Println("to install required packages run:\n")
+	fmt.Println("1. cd " + strings.Replace(out, "./", "", 1))
+	fmt.Println("2. go mod init github.com/github-name/repo-name")
+	fmt.Println("3. go mod tidy\n")
+	fmt.Println("thank you for using seed 🌱")
+	return nil
 }
 
 func GenerateGoServer(out string) error {
@@ -193,7 +317,7 @@ func main() {
 `)
 	clear()
 	if out == "." {
-		fmt.Println("to install required packages run:")
+		fmt.Println("to install required packages run:\n")
 		fmt.Println("1. go mod init github.com/github-name/repo-name")
 		fmt.Println("2. go mod tidy\n")
 		fmt.Println("thank you for using seed 🌱")
@@ -205,6 +329,44 @@ func main() {
 	fmt.Println("3. go mod tidy\n")
 	fmt.Println("thank you for using seed 🌱")
 	return nil
+}
+
+type LibrarySkeleton struct {
+	Root       string
+	LibGoPath  string
+	TestGoPath string
+}
+
+func NewLibrarySkeleton(root string) LibrarySkeleton {
+	var fileName string
+	if root == "." {
+		fileName = "lib.go"
+	} else {
+		fileName = strings.Replace(root, "./", "", 1) + ".go"
+	}
+	var testName string
+	if root == "." {
+		testName = "lib_test.go"
+	} else {
+		testName = strings.Replace(root, "./", "", 1) + "_test.go"
+	}
+	return LibrarySkeleton{
+		Root:       root,
+		LibGoPath:  root + "/" + fileName,
+		TestGoPath: root + "/" + testName,
+	}
+}
+
+type CliSkeleton struct {
+	Root       string
+	MainGoPath string
+}
+
+func NewCliSkeleton(root string) CliSkeleton {
+	return CliSkeleton{
+		Root:       root,
+		MainGoPath: root + "/main.go",
+	}
 }
 
 type ServerSkeleton struct {
