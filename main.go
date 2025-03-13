@@ -74,19 +74,6 @@ func main() {
 					if err != nil {
 						return err
 					}
-					clear()
-					if out == "." {
-						fmt.Println("to install required packages run:")
-						fmt.Println("1. go mod init github.com/github-name/repo-name")
-						fmt.Println("2. go mod tidy\n")
-						fmt.Println("thank you for using seed 🌱")
-						return nil
-					}
-					fmt.Println("to install required packages run:\n")
-					fmt.Println("1. cd " + strings.Replace(out, "./", "", 1))
-					fmt.Println("2. go mod init github.com/github-name/repo-name")
-					fmt.Println("3. go mod tidy\n")
-					fmt.Println("thank you for using seed 🌱")
 					return nil
 				case "cli":
 					fmt.Println("generating a golang cli project..")
@@ -204,6 +191,19 @@ func main() {
 	app.Serve("8080")
 }
 `)
+	clear()
+	if out == "." {
+		fmt.Println("to install required packages run:")
+		fmt.Println("1. go mod init github.com/github-name/repo-name")
+		fmt.Println("2. go mod tidy\n")
+		fmt.Println("thank you for using seed 🌱")
+		return nil
+	}
+	fmt.Println("to install required packages run:\n")
+	fmt.Println("1. cd " + strings.Replace(out, "./", "", 1))
+	fmt.Println("2. go mod init github.com/github-name/repo-name")
+	fmt.Println("3. go mod tidy\n")
+	fmt.Println("thank you for using seed 🌱")
 	return nil
 }
 
