@@ -202,7 +202,7 @@ func main() {
 
 type DefaultCmd struct{}
 
-func NewDefaultCmd() (mood.Cmd, error) {
+func NewDefaultCmd(app *mood.App) (mood.Cmd, error) {
 	return DefaultCmd{}, nil
 }
 
@@ -217,7 +217,7 @@ func (cmd DefaultCmd) Execute(app *mood.App) error {
 
 type HelpCmd struct{}
 
-func NewHelpCmd() (mood.Cmd, error) {
+func NewHelpCmd(app *mood.App) (mood.Cmd, error) {
 	return HelpCmd{}, nil
 }
 
