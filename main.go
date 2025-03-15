@@ -177,27 +177,53 @@ func GenerateGoCli(out string) error {
 	err = writeFile(skeleton.MainGoPath, `package main
 
 import (
-	"github.com/Phillip-England/mood"
 	"fmt"
+	"os"
+	"github.com/Phillip-England/mood"
 )
 
 func main() {
 
 	app := mood.New()
 
-	app.At("build", func(app *mood.Mood) error {
-		if app.HasFlag("-f") {
-      fmt.Println("do something..")
-    }
-    fmt.Println("building...")
-		return nil
-	})
+	app.SetDefault(NewDefaultCmd)
+	app.At("help", NewHelpCmd)
 
 	err := app.Run()
 	if err != nil {
 		panic(err)
 	}
 
+}
+
+//======================
+// DefaultCmd
+//======================
+
+type DefaultCmd struct{}
+
+func NewDefaultCmd() (Cmd, error) {
+	return DefaultCmd{}, nil
+}
+
+func (cmd DefaultCmd) Execute(app *App) error {
+	fmt.Println("working..")
+	return nil
+}
+
+//======================
+// HelpCmd
+//======================
+
+type HelpCmd struct{}
+
+func NewHelpCmd() (Cmd, error) {
+	return HelpCmd{}, nil
+}
+
+func (cmd HelpCmd) Execute(app *App) error {
+	fmt.Println("helping..")
+	return nil
 }`)
 	if err != nil {
 		return err
